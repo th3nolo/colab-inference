@@ -68,9 +68,9 @@ Just change the `model_id` in the CONFIG cell (notebook) or `colab_server.py`.
 | VRAM needed | What fits |
 |-------------|-----------|
 | ~2-3 GB | 1B models (fp16) |
-| ~4-6 GB | 3-4B models (fp16) |
-| ~8-10 GB | 7-8B models (fp16) |
-| ~14-16 GB | 7-8B models (fp16 + long context), 14B models (4-bit quantized) |
+| ~4-6 GB | 3-4B models (fp16), 7B models (4-bit — measured 4.8 GB for Mistral 7B) |
+| ~8-10 GB | 14B models (4-bit quantized) |
+| ~14-16 GB | 7-8B models (fp16) — tight: Mistral 7B bf16 measured 14.5 GB and spills 5 of 36 modules to CPU on the T4's 15.0 GB, dropping to ~2 tok/s |
 
 Rule of thumb: **fp16 uses ~2GB per 1B parameters**. Quantized (4-bit) cuts that in half.
 
@@ -87,7 +87,7 @@ These all fit on a T4 and work out of the box with this toolkit.
 | **SmolLM3** | 3B | `HuggingFaceTB/SmolLM3-3B` | Beats Llama-3.2-3B and Qwen2.5-3B |
 | **Phi-4 mini** | 3.8B | `microsoft/phi-4-mini-instruct` | Strong reasoning for its size |
 | **Gemma 3** | 4B | `google/gemma-3-4b-it` | Google's best small model, multimodal |
-| **Mistral Small 3** | 7B | `mistralai/Mistral-Small-3.1-24B-Instruct-2503` | Fast, great instruction following |
+| **Mistral 7B Instruct** | 7B | `mistralai/Mistral-7B-Instruct-v0.3` | Use 4-bit on T4: 4.8 GB, ~6 tok/s (verified); fp16 spills to CPU and drops to ~2 tok/s |
 
 #### Code focused
 
