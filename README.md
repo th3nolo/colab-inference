@@ -76,7 +76,7 @@ Rule of thumb: **fp16 uses ~2GB per 1B parameters**. Quantized (4-bit) cuts that
 
 ### Recommended models (T4 friendly)
 
-These all fit on a T4, deliver strong quality, and work out of the box with this toolkit.
+These all fit on a T4 and work out of the box with this toolkit.
 
 #### General purpose
 
@@ -176,7 +176,7 @@ If you prefer, just copy `colab_server.py` into a Colab cell and run it. Edit th
 
 ## Files
 
-- `colab_inference_server.ipynb` — Clean notebook ready to open in Colab
+- `colab_inference_server.ipynb` — Notebook ready to open in Colab
 - `colab_server.py` — Single-cell version (copy-paste into any notebook)
 - `proxy.mjs` — Local Node.js proxy (forwards to tunnel)
 - `deploy.sh` — Auto-deploy via Chrome DevTools Protocol
