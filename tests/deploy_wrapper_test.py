@@ -1,4 +1,5 @@
 """Offline generated-cell tests. Run with uv and an existing Python interpreter."""
+import ast
 import json
 import os
 import subprocess
@@ -82,6 +83,33 @@ class WrapperTests(unittest.TestCase):
         with self.assertRaisesRegex(RuntimeError, 'CONFIG model_revision support'):
             exec(generated('CONFIG = {"model_id": "org/model"}', 'new/model', 'a' * 40), self.scope)
         self.assertNotIn('_ci_started', self.scope)
+
+    def test_real_server_source_preserved_through_config_override(self):
+        source = (ROOT / 'colab_server.py').read_text(encoding='utf-8')
+        original = ast.parse(source)
+        config = next(n for n in original.body if isinstance(n, ast.Assign) and any(isinstance(t, ast.Name) and t.id == 'CONFIG' for t in n.targets))
+        keys = [k.value for k in config.value.keys]
+        if 'model_revision' not in keys:
+            self.skipTest('Requires reproducibility prerequisite with model_revision')
+        revision = 'b' * 40
+        config.value.values[keys.index('model_id')] = ast.Constant(value='fixture/model')
+        config.value.values[keys.index('model_revision')] = ast.Constant(value=revision)
+        ast.fix_missing_locations(original)
+        executed = []
+
+        def mock_server_exec(code, namespace):
+            # Exercise generation, parsing and compilation of the actual combined
+            # source, but never run its installers/model/tunnel startup.
+            self.assertIsInstance(code, types.CodeType)
+            self.assertEqual(code.co_filename, 'colab_server.py')
+            executed.append(code)
+            namespace['tunnel_url'] = 'https://fixture.invalid'
+
+        self.scope['exec'] = mock_server_exec
+        exec(generated(source, 'fixture/model', revision), self.scope)
+        self.assertEqual(ast.dump(self.scope['_ci_tree']), ast.dump(original))
+        self.assertEqual(len(executed), 1)
+        self.assertEqual(self.states[-1]['status'], 'complete')
 
     def test_malformed_source_reports_syntax_error(self):
         with self.assertRaises(SyntaxError):
