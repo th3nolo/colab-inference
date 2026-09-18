@@ -1,0 +1,73 @@
+{
+  "uv": {
+    "release_url": "https://api.github.com/repos/astral-sh/uv/releases/tags/0.12.9",
+    "tag": "0.12.9",
+    "published_at": "2026-09-01T21:58:26Z",
+    "url": "https://github.com/astral-sh/uv/releases/download/0.12.9/uv-x86_64-unknown-linux-gnu.tar.gz",
+    "sha256": "sha256:ec7a99cd05e0cd7f80243f135ce1361c76835cb0ee60055d14d20eba8eba1460",
+    "size": 19423276,
+    "download_verified_sha256": "ec7a99cd05e0cd7f80243f135ce1361c76835cb0ee60055d14d20eba8eba1460"
+  },
+  "cloudflared": {
+    "release_url": "https://api.github.com/repos/cloudflare/cloudflared/releases/tags/2026.8.0",
+    "tag": "2026.8.0",
+    "published_at": "2026-08-13T10:05:08Z",
+    "url": "https://github.com/cloudflare/cloudflared/releases/download/2026.8.0/cloudflared-linux-amd64",
+    "sha256": "sha256:14ecae0dd17ba74f8055e22b8f5b5acc3cbb5a9c3be4e7d6507fe1c4eadaea95",
+    "size": 39798348,
+    "download_verified_sha256": "14ecae0dd17ba74f8055e22b8f5b5acc3cbb5a9c3be4e7d6507fe1c4eadaea95",
+    "advisory_source": "https://api.github.com/repos/cloudflare/cloudflared/security-advisories",
+    "public_advisories": [
+      {
+        "ghsa_id": "GHSA-7mjv-x3jf-545x",
+        "summary": "Local Privilege Escalation Vulnerability in cloudflared's Installer",
+        "published_at": "2023-03-21T10:52:31Z",
+        "vulnerabilities": [
+          {
+            "package": {
+              "ecosystem": "windows 32-bit",
+              "name": "cloudflared"
+            },
+            "vulnerable_version_range": "<=2023.3.0",
+            "patched_versions": "2023.3.1",
+            "vulnerable_functions": []
+          }
+        ],
+        "html_url": "https://github.com/cloudflare/cloudflared/security/advisories/GHSA-7mjv-x3jf-545x"
+      },
+      {
+        "ghsa_id": "GHSA-hgwp-4vp4-qmm2",
+        "summary": "Local Privilege Escalation in cloudflared",
+        "published_at": "2020-09-16T18:26:58Z",
+        "vulnerabilities": [
+          {
+            "package": {
+              "ecosystem": "",
+              "name": ""
+            },
+            "vulnerable_version_range": "< 2020.8.1",
+            "patched_versions": "2020.8.1",
+            "vulnerable_functions": []
+          }
+        ],
+        "html_url": "https://github.com/cloudflare/cloudflared/security/advisories/GHSA-hgwp-4vp4-qmm2"
+      }
+    ]
+  },
+  "model": {
+    "id": "LiquidAI/LFM2.5-1.2B-Instruct",
+    "revision": "0f604ada3f766f9f257460c4c9f0b5d6f69d431b",
+    "last_modified": "2026-08-24T21:06:29Z",
+    "source": "https://huggingface.co/api/models/LiquidAI/LFM2.5-1.2B-Instruct",
+    "native_implementation_checked": "https://raw.githubusercontent.com/huggingface/transformers/v5.16.1/src/transformers/models/lfm2/modeling_lfm2.py"
+  },
+  "torch": {
+    "version": "2.13.0+cu126",
+    "url": "https://download.pytorch.org/whl/cu126/torch-2.13.0%2Bcu126-cp312-cp312-manylinux_2_28_x86_64.whl",
+    "sha256": "8695f3c6b7966d44560275b90c5c28e5091ba33ddbb1ab33b2173782ca1e9145",
+    "hash_source": "https://download.pytorch.org/whl/cu126/torch/",
+    "last_modified": "Wed, 08 Jul 2026 19:42:50 GMT",
+    "metadata_checked": true,
+    "full_wheel_download_verified": false
+  }
+}

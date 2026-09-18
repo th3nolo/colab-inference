@@ -3,3 +3,4 @@ package-lock.json
 *.log
 __pycache__/
 .ipynb_checkpoints/
+work/

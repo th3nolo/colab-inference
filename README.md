@@ -181,8 +181,8 @@ mocked inference; neither suite starts a live Colab runtime.
 
 ## Supported Models
 
-Any HuggingFace model that works with `AutoModelForCausalLM` + `AutoTokenizer` works here.
-Just change the `model_id` in the CONFIG cell (notebook) or `colab_server.py`.
+Use Hugging Face models supported by the pinned `AutoModelForCausalLM` + `AutoTokenizer` runtime.
+Change both `model_id` and `model_revision` (a reviewed 40-character commit SHA) in the CONFIG cell or `colab_server.py`. The same revision pins the tokenizer. Models must support the pinned runtime and safetensors without remote Python code.
 
 ### How to choose a model
 
@@ -241,7 +241,8 @@ These all fit on a T4 and work out of the box with this toolkit.
 Change the CONFIG cell:
 ```python
 CONFIG = {
-    "model_id": "Qwen/Qwen3-8B",  # <-- change this
+    "model_id": "Qwen/Qwen3-8B",
+    "model_revision": "<reviewed 40-character commit SHA>",
     ...
 }
 ```
@@ -264,14 +265,14 @@ quantization_config = BitsAndBytesConfig(load_in_4bit=True)
 model = AutoModelForCausalLM.from_pretrained(
     CONFIG["model_id"],
     device_map="auto",
+    revision=CONFIG["model_revision"],
+    trust_remote_code=False,
+    use_safetensors=True,
     quantization_config=quantization_config,
 )
 ```
 
-This lets you run 14B models on a T4. Install `bitsandbytes` first:
-```python
-!pip install -q bitsandbytes
-```
+Quantization is an optional extension, outside the locked baseline. Before enabling it, select and audit an explicit compatible `bitsandbytes` version, add it to `pyproject.toml`, regenerate the lock and validate it on your GPU. No unpinned installation command is provided.
 
 ### Finding models on HuggingFace
 
@@ -288,14 +289,16 @@ This lets you run 14B models on a T4. Install `bitsandbytes` first:
 | Problem | Fix |
 |---------|-----|
 | `OutOfMemoryError` | Model too large. Use a smaller variant or enable 4-bit quantization |
-| `trust_remote_code` error | Add `trust_remote_code=True` to both `from_pretrained()` calls |
+| `trust_remote_code` error | Choose a model natively supported by the pinned Transformers version |
 | `tokenizer.apply_chat_template` fails | Model may not have a chat template. Check model card for correct prompt format |
 | Slow inference | Make sure GPU runtime is enabled. Check with `!nvidia-smi` |
 | Gibberish output | Use the `-Instruct` or `-it` variant, not the base model |
 
 ## Manual Setup
 
-If you prefer, just copy `colab_server.py` into a Colab cell and run it. Edit the `CONFIG` dict at the top to change the model.
+Copy `colab_server.py` into a fresh **Linux x86_64 / Python 3.12** Colab cell and run it. Edit both the model ID and immutable revision in `CONFIG` when changing the model. Setup installs the embedded hash-locked runtime and verifies the uv/cloudflared executable downloads. Other Python versions fail before installation.
+
+See [Reproducible runtime baseline](REPRODUCIBILITY.md) for exact versions, release-age/advisory evidence, offline tests, maintenance commands and the remaining Colab validation limits. Deployment PR #4 must accompany this change to remove the old deployment installer.
 
 ## Files
 

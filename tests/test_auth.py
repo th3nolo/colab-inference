@@ -18,7 +18,7 @@ TOKEN = 'test-only-token-' + 'x' * 32
 
 def load_server():
     source = (ROOT / 'colab_server.py').read_text(encoding='utf-8')
-    config = source[source.index('CONFIG ='):source.index('import subprocess, sys')]
+    config = source[source.index('CONFIG ='):source.index('# BEGIN GENERATED SETUP')]
     api = source[source.index('import threading'):source.index('threading.Thread(')]
     ns = {'__name__': 'test_server'}
     model = Mock()
@@ -149,7 +149,7 @@ class AuthTests(unittest.TestCase):
 
     def test_invalid_config_fails_without_disclosing_secret(self):
         source = (ROOT/'colab_server.py').read_text(encoding='utf-8')
-        config = source[source.index('CONFIG ='):source.index('import subprocess, sys')]
+        config = source[source.index('CONFIG ='):source.index('# BEGIN GENERATED SETUP')]
         for value in ('', 'short', 'x'*257, 'contains spaces'+'x'*32):
             with patch.dict(os.environ, {'COLAB_API_TOKEN': value}):
                 with self.assertRaises(RuntimeError) as ctx:
@@ -162,7 +162,7 @@ class AuthTests(unittest.TestCase):
         nb=json.loads((ROOT/'colab_inference_server.ipynb').read_text())
         config=''.join(nb['cells'][2]['source'])
         api=''.join(nb['cells'][8]['source'])
-        self.assertEqual(ast.dump(ast.parse(config)), ast.dump(ast.parse(source[source.index('CONFIG ='):source.index('import subprocess, sys')])))
+        self.assertEqual(ast.dump(ast.parse(config)), ast.dump(ast.parse(source[source.index('CONFIG ='):source.index('# BEGIN GENERATED SETUP')])))
         self.assertEqual(ast.dump(ast.parse(api)), ast.dump(ast.parse(source[source.index('import threading'):source.index('import subprocess, re, os')])) )
 
 if __name__ == '__main__':
