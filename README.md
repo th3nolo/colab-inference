@@ -27,7 +27,34 @@ Navigate to https://colab.research.google.com/#create=true
 
 Then: **Runtime -> Change runtime type -> T4 GPU**
 
-### 3. Deploy the server
+### 3. Configure the shared token and deploy
+
+Generate a fresh random token locally for each temporary session (for example, use
+`uv run --no-project python -c "import secrets; print(secrets.token_urlsafe(32))"`).
+Store it in **Colab Secrets** as `COLAB_API_TOKEN` and enable notebook access.
+Alternatively, provision that environment variable in the Colab runtime.
+The server fails before installation/model loading if the token is missing or malformed.
+Never paste the token into notebook source, CONFIG, committed files, URLs, or saved outputs.
+
+Set the same token in the local proxy environment without putting it in shell history:
+
+```bash
+read -rsp 'Colab API token: ' COLAB_API_TOKEN; echo
+export COLAB_API_TOKEN
+```
+
+PowerShell (7+) equivalent:
+
+```powershell
+$env:COLAB_API_TOKEN = Read-Host 'Colab API token' -MaskInput
+```
+
+This preserves the short-lived public HTTPS tunnel workflow: only callers with the
+shared token can use the Colab server. Stop the Colab runtime/tunnel when finished
+(e.g. after your two-hour session), unset the local variable, and use a new token
+next time. There is no automatic two-hour expiry. Colab Secrets persist until changed.
+
+Deploy after adding the Colab secret:
 
 ```bash
 cd ~/colab-inference
@@ -65,9 +92,8 @@ closes the response. Closing the local client connection aborts the upstream
 request; this does not guarantee cancellation of GPU work already started by
 the remote server. Upstream redirects are rejected.
 
-Loopback binding and browser restrictions do not authenticate local processes
-or secure the public tunnel. Token authentication/forwarding is a separate
-change; this proxy transport change should land before that change.
+Loopback binding and browser restrictions do not authenticate local processes.
+The proxy holds the shared token and supplies it to the authenticated public server.
 
 Proxy regression tests use only local mock HTTP servers, with no dependencies,
 model downloads, or public tunnel:
@@ -88,7 +114,47 @@ curl -s http://localhost:3000/v1/chat/completions \
   -d '{"messages":[{"role":"user","content":"Hello!"}]}'
 ```
 
-Works with any OpenAI-compatible client using `base_url = "http://localhost:3000/v1"`.
+The local proxy supplies `Authorization: Bearer $COLAB_API_TOKEN` upstream.
+Treat access to this proxy as access to the model; its loopback bind and browser
+origin restrictions limit who can use it.
+
+For direct HTTPS tunnel access, use the shared token as your provider/client API key:
+
+```bash
+curl "$TUNNEL_URL/v1/models" -H "Authorization: Bearer $COLAB_API_TOKEN"
+```
+
+```python
+import os
+from openai import OpenAI  # if your client already uses the OpenAI SDK
+client = OpenAI(base_url=os.environ["TUNNEL_URL"] + "/v1",
+                api_key=os.environ["COLAB_API_TOKEN"])
+```
+
+All server routes, including `/health` and `/v1/models`, require the token; missing,
+invalid, or duplicate authorization headers return `401`. Secrets are never printed
+by the server or proxy. Documentation endpoints are disabled.
+
+### Inference limits
+
+Adjust these positive integers in CONFIG in either deployment format:
+
+| Setting | Default | Effect |
+| --- | ---: | --- |
+| `max_input_chars` | 16000 | Total message content and role characters before tokenization |
+| `max_messages` | 64 | Maximum messages per request |
+| `max_input_tokens` | 4096 | Prompt token cap, including chat-template overhead |
+| `max_output_tokens` | 1024 | Maximum allowed client `max_tokens` |
+| `max_new_tokens` | 512 | Default output budget, no larger than `max_output_tokens` |
+| `max_concurrent_requests` | 1 | Concurrent tokenization/generation operations |
+
+Oversized prompts return `413` (schema length violations return `422`); invalid
+output budgets return `422`. Prompt plus output must fit the model's advertised
+`max_position_embeddings`, when available. Busy inference returns `429` with
+`Retry-After: 1`; clients should retry with backoff. Tokenization and generation
+share the slot, and exceptions always release it. Keep concurrency at one on a
+small Colab GPU unless you have measured available memory. These are inference
+limits; proxy transport/body/time limits are maintained by the proxy hardening PR.
 
 ## Supported Models
 
@@ -214,3 +280,17 @@ If you prefer, just copy `colab_server.py` into a Colab cell and run it. Edit th
 - `colab_server.py` — Single-cell version (copy-paste into any notebook)
 - `proxy.mjs` — Local Node.js proxy (forwards to tunnel)
 - `deploy.sh` — Auto-deploy via Chrome DevTools Protocol
+
+
+## Authentication regression tests
+
+With FastAPI, Pydantic v2 and httpx available in your existing Python environment:
+
+```bash
+uv run --no-project python -m unittest discover -s tests -p 'test_auth.py' -v
+node --test --test-timeout=5000 tests/proxy.test.mjs
+```
+
+Python tests execute only configuration and API definitions with mocked model,
+tokenizer and torch objects. They never execute dependency installation, model
+loading, server startup, or tunnel startup. Both suites use local mocks only.
