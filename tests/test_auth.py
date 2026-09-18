@@ -44,7 +44,6 @@ def load_server():
     ns.update(model=model, tokenizer=tokenizer)
     with patch.dict(os.environ, {'COLAB_API_TOKEN': TOKEN}), patch.dict('sys.modules', {
         'torch': types.SimpleNamespace(no_grad=contextlib.nullcontext),
-        'uvicorn': types.SimpleNamespace(),
     }):
         exec(compile(config, 'config', 'exec'), ns)
         ns['LOADED_MODEL_ID'] = ns['CONFIG']['model_id']

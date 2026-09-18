@@ -29,7 +29,11 @@ transitive dependencies, with SHA-256 hashes. Runtime installation uses binary
 wheels only, disables dependency resolution, requires hashes and explicitly
 reinstalls the lock so existing unverified installations are not silently reused.
 PyTorch's exact wheel URL prevents selecting the default CUDA 13 distribution.
-Lock compilation installs no packages. Local HTTP tests use only 14 audited, hash-locked CPU dependencies in an isolated `work/test-deps` directory; no GPU packages are installed.
+Lock compilation installs no packages. CI and local HTTP tests use 16 audited,
+hash-locked CPU dependencies in `work/test-env`; no GPU packages are installed.
+`scripts/test_environment.py` derives this subset without resolving new versions
+and rechecks every artifact against PyPI before installation. See the README's
+complete environment and check commands.
 
 The uv archive and cloudflared binary are downloaded from versioned official
 release URLs and checked against hardcoded SHA-256 digests **before execution**.
@@ -73,8 +77,13 @@ the much larger runtime wheels and model when a user actually runs it in Colab.
 Offline unit tests cover digest rejection, size limits, valid downloads,
 unsupported runtimes, mutable model revision rejection, exact locked install
 arguments, private executable paths, and generated notebook/server parity.
-The combined API/authentication tests also pass against the selected FastAPI 0.141.1, Starlette 1.3.1, Pydantic 2.13.5 and HTTPX 0.28.1 on the existing Windows Python 3.13 test interpreter. Starlette emits a test-client deprecation notice for HTTPX; no extra package was added just to silence it. The dependency resolver validates the graph for Python 3.12/Linux x86_64 using
-registry metadata. This is **not** a completed Colab/T4 inference test: no GPU
+The CPU gate uses FastAPI 0.141.1, Starlette 1.3.1, Pydantic 2.13.5 and HTTPX
+0.28.1 on pinned Python 3.12.10. Starlette emits a test-client deprecation notice
+for HTTPX; this compatible, locked dependency is retained. Real Uvicorn startup
+and proxy requests run on bounded loopback sockets for both notebook and server
+source. Only external model/GPU behavior is substituted in that path. Generated
+deployment-cell tests verify custom model/revision propagation into actual
+model-load code and API responses. This is **not** a completed Colab/T4 inference test: no GPU
 package installation, model download, live notebook execution or public tunnel
 was performed. Driver compatibility, preinstalled optional Colab packages,
 model execution, precision support and inference output still need a fresh
@@ -109,12 +118,77 @@ a changed lock. For an updated date policy, change the cutoff deliberately in
 both the resolver and audit script. The generator intentionally leaves API,
 authentication and tunnel cells owned by other changes intact.
 
-## Deployment coordination
+## Manual GPU acceptance (opt-in)
 
-This PR is based on API PR #2, after proxy #1 and authentication #3. Merge this runtime/config change **before [deployment PR #4](https://github.com/th3nolo/colab-inference/pull/4)**.
-That PR removes the separate moving uv installer and websocket-client dependency
-from the deploy path, uses Node's built-in WebSocket, and requires `--revision`
-with a custom `--model`. This PR alone does not fix the old deploy script; the
-complete reproducibility fix requires both PRs. Preserve API identity/validation
-changes from PR #2 and the authentication PR when resolving shared notebook or
-model-load lines. No merge or deployment is part of this work.
+There is no Colab service or GPU runner configured in GitHub Actions. The manual
+workflow trigger runs CPU contracts only. The following procedure is for an
+already available, user-controlled free Colab GPU session; it does not provision
+paid compute. Allow at most 15 minutes for setup and stop on any unsupported
+runtime, unavailable GPU, OOM, installation failure or timeout. Record the step
+and error as a blocked/failed acceptance rather than substituting CPU fixtures.
+
+1. Open the notebook from the exact PR commit in a fresh compatible CPython 3.12
+   Linux x86_64 session. Confirm the allocated GPU and driver with `nvidia-smi`.
+   Record the commit, Python version, GPU, driver, and model/revision. Do not
+   bypass runtime or artifact checks. Keep the existing shared token in Colab
+   Secrets/environment; never paste it into an issue, transcript or test log.
+2. Execute the notebook's actual config, locked setup, model-load, API and tunnel
+   cells in order once. The default model and tokenizer must use the committed
+   revision, safetensors and `trust_remote_code=False`. Confirm the loaded
+   device is CUDA. Installation and model download are real work here and are
+   outside the CPU CI result. A custom model is a separate acceptance run with
+   a reviewed immutable revision and sufficient free memory.
+3. Run this bounded cell after successful startup. It makes two real completion
+   requests (at most 16 new tokens each), one through the local API and one
+   through the existing tunnel. Use only the public synthetic prompt below.
+
+   ```python
+   import json, urllib.request, urllib.error
+   assert next(model.parameters()).device.type == "cuda"
+   assert tunnel_url and tunnel_url.startswith("https://")
+   for base in (f"http://127.0.0.1:{CONFIG['port']}", tunnel_url):
+       def call(path, data=None, authenticated=True):
+           headers = {"Content-Type": "application/json"}
+           if authenticated:
+               headers["Authorization"] = "Bearer " + API_TOKEN
+           request = urllib.request.Request(base + path, data=data, headers=headers)
+           try:
+               with urllib.request.urlopen(request, timeout=30) as response:
+                   return response.status, json.load(response)
+           except urllib.error.HTTPError as error:
+               return error.code, json.load(error)
+       assert call("/health", authenticated=False)[0] == 401
+       status, health = call("/health")
+       assert status == 200 and health["model"] == LOADED_MODEL_ID
+       status, models = call("/v1/models")
+       assert status == 200 and models["data"][0]["id"] == LOADED_MODEL_ID
+       body = {"model": LOADED_MODEL_ID, "messages": [{"role": "user", "content": "Reply with the word hello."}],
+               "max_tokens": 16, "temperature": 0, "stream": False}
+       status, result = call("/v1/chat/completions", json.dumps(body).encode())
+       assert status == 200 and result["model"] == LOADED_MODEL_ID
+       assert result["choices"][0]["message"]["content"].strip()
+       assert result["choices"][0]["finish_reason"] in ("stop", "length")
+       usage = result["usage"]
+       assert 0 < usage["completion_tokens"] <= 16
+       assert usage["total_tokens"] == usage["prompt_tokens"] + usage["completion_tokens"]
+       for changes, expected in (({"stream": True}, 400), ({"model": "invalid/model"}, 400), ({"max_tokens": 0}, 422)):
+           assert call("/v1/chat/completions", json.dumps(body | changes).encode())[0] == expected
+   print("Real GPU API and tunnel smoke checks passed")
+   ```
+
+4. From the local machine, start the existing proxy with the same environment
+   token and returned tunnel URL. Repeat `/health`, `/v1/models` and one
+   completion capped at 16 tokens using the documented client requests. Use a
+   30-second client timeout. Confirm loopback binding and that disallowed
+   browser origins receive 403. Stop the task-owned proxy after testing.
+5. If testing `deploy.mjs`, use an explicitly selected notebook and its marked
+   managed cell in a separate fresh session. Bound `--timeout` to 900 seconds;
+   confirm completion is reported only after Python startup succeeds. This
+   checks the current private Colab page API and must be recorded separately
+   from manual notebook execution. Never overwrite unrelated cells.
+
+Save a redacted result with the exact commit, environment/model identifiers,
+pass/fail per step, token counts and errors. Report GPU, public tunnel, local
+proxy and automated notebook deployment acceptance separately. Disconnect the
+test session when finished. A proxy timeout closes HTTP transport but does not
+guarantee cancellation of GPU generation already in progress.
