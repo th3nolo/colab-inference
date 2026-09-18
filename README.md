@@ -42,6 +42,40 @@ Once you see the tunnel URL in the Colab output:
 node proxy.mjs https://your-tunnel.trycloudflare.com 3000
 ```
 
+The proxy listens only on `127.0.0.1`. Use `http://127.0.0.1:3000/v1` if
+`localhost` resolves to IPv6 in your client. Command-line and SDK callers need
+no CORS configuration. Browser requests from other origins are rejected before
+forwarding, including simple POST requests. For a local web app, allow its exact
+origin explicitly (no wildcard):
+
+```bash
+PROXY_ALLOWED_ORIGINS=http://localhost:5173 node proxy.mjs https://your-tunnel.trycloudflare.com 3000
+```
+
+In PowerShell, set `$env:PROXY_ALLOWED_ORIGINS = "http://localhost:5173"` before
+running the existing `node proxy.mjs ...` command. Multiple origins can be
+comma-separated. Only add origins you trust to make inference requests.
+
+Request bodies are limited to 1 MiB, including chunked uploads; larger requests
+receive HTTP 413. Upstream requests have a five-minute total deadline covering
+headers and response streaming. Set `PROXY_UPSTREAM_TIMEOUT_MS` to a positive
+integer in milliseconds to adjust it for slower inference (maximum 2147483647).
+Timeouts before response headers return 504; a timeout after streaming starts
+closes the response. Closing the local client connection aborts the upstream
+request; this does not guarantee cancellation of GPU work already started by
+the remote server. Upstream redirects are rejected.
+
+Loopback binding and browser restrictions do not authenticate local processes
+or secure the public tunnel. Token authentication/forwarding is a separate
+change; this proxy transport change should land before that change.
+
+Proxy regression tests use only local mock HTTP servers, with no dependencies,
+model downloads, or public tunnel:
+
+```bash
+node --test --test-timeout=5000 tests/proxy.test.mjs
+```
+
 ### 5. Use it
 
 ```bash
