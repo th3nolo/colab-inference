@@ -73,6 +73,7 @@ model = AutoModelForCausalLM.from_pretrained(
     dtype=CONFIG["dtype"],
 )
 tokenizer = AutoTokenizer.from_pretrained(CONFIG["model_id"])
+LOADED_MODEL_ID = CONFIG["model_id"]
 print(f"[2/4] Model loaded: {CONFIG['model_id']} on {next(model.parameters()).device}")
 
 # ── Step 3: Start API server ────────────────────────────────────────────────────
@@ -108,7 +109,7 @@ class ChatMessage(BaseModel):
     content: str = Field(max_length=CONFIG["max_input_chars"])
 
 class ChatRequest(BaseModel):
-    model: str = CONFIG["model_id"]
+    model: str = LOADED_MODEL_ID
     messages: list[ChatMessage] = Field(min_length=1, max_length=CONFIG["max_messages"])
     max_tokens: int = Field(default=CONFIG["max_new_tokens"], strict=True, ge=1, le=CONFIG["max_output_tokens"])
     temperature: float = Field(default=CONFIG["temperature"], ge=0, le=2, allow_inf_nan=False)
@@ -117,14 +118,24 @@ class ChatRequest(BaseModel):
 
 @app.get("/v1/models")
 def list_models():
-    return {"data": [{"id": CONFIG["model_id"], "object": "model"}]}
+    return {"data": [{"id": LOADED_MODEL_ID, "object": "model"}]}
 
 @app.get("/health")
 def health():
-    return {"status": "ok", "model": CONFIG["model_id"], "device": str(next(model.parameters()).device)}
+    return {"status": "ok", "model": LOADED_MODEL_ID, "device": str(next(model.parameters()).device)}
 
 @app.post("/v1/chat/completions")
 def chat(req: ChatRequest):
+    if req.model != LOADED_MODEL_ID:
+        raise HTTPException(status_code=400, detail={
+            "param": "model",
+            "message": f"Unsupported model {req.model!r}; loaded model is {LOADED_MODEL_ID!r}.",
+        })
+    if req.stream:
+        raise HTTPException(status_code=400, detail={
+            "param": "stream",
+            "message": "Streaming is not supported; use stream=false.",
+        })
     if sum(len(m.content) + len(m.role) for m in req.messages) > CONFIG["max_input_chars"]:
         raise HTTPException(413, "Input exceeds max_input_chars")
     if not inference_slots.acquire(blocking=False):
@@ -151,6 +162,11 @@ def generate_completion(req: ChatRequest):
     if next(model.parameters()).device.type == "cuda":
         torch.cuda.synchronize()
 
+    # Use the same EOS IDs for generation and finish-reason classification.
+    eos_token_id = model.generation_config.eos_token_id
+    eos_ids = [] if eos_token_id is None else (
+        [eos_token_id] if isinstance(eos_token_id, int) else list(eos_token_id)
+    )
     t0 = _time.perf_counter()
     with torch.no_grad():
         output = model.generate(
@@ -160,6 +176,7 @@ def generate_completion(req: ChatRequest):
             top_k=req.top_k,
             repetition_penalty=CONFIG["repetition_penalty"],
             max_new_tokens=req.max_tokens,
+            eos_token_id=eos_token_id,
         )
 
     if next(model.parameters()).device.type == "cuda":
@@ -167,16 +184,19 @@ def generate_completion(req: ChatRequest):
 
     elapsed = _time.perf_counter() - t0
     gen_tokens = output.shape[1] - input_len
-    response_text = tokenizer.decode(output[0][input_len:], skip_special_tokens=True)
+    generated = output[0][input_len:]
+    ended_on_eos = gen_tokens > 0 and generated[-1].item() in eos_ids
+    finish_reason = "length" if gen_tokens >= req.max_tokens and not ended_on_eos else "stop"
+    response_text = tokenizer.decode(generated, skip_special_tokens=True)
 
     return {
         "id": f"chatcmpl-{uuid.uuid4().hex[:8]}",
         "object": "chat.completion",
-        "model": req.model,
+        "model": LOADED_MODEL_ID,
         "choices": [{
             "index": 0,
             "message": {"role": "assistant", "content": response_text},
-            "finish_reason": "stop",
+            "finish_reason": finish_reason,
         }],
         "usage": {
             "prompt_tokens": input_len,

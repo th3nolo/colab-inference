@@ -156,6 +156,29 @@ share the slot, and exceptions always release it. Keep concurrency at one on a
 small Colab GPU unless you have measured available memory. These are inference
 limits; proxy transport/body/time limits are maintained by the proxy hardening PR.
 
+### Chat API behavior
+
+Use the exact loaded model ID from `/v1/models`, or omit `model` to use the default.
+Unsupported model IDs and `stream=true` return HTTP 400 before tokenization or
+acquiring an inference slot. Streaming is not supported; use `stream=false` (the
+default). Responses, model listing and health identify the model captured at load
+time, even if CONFIG is edited without reloading it.
+
+`finish_reason` is `length` when generation exhausts `max_tokens` without ending
+on an EOS token, and `stop` for EOS or earlier stopping. EOS on the final allowed
+token counts as `stop`. The authenticated API's existing schema enforces positive
+output limits and its configured maximum.
+
+Offline API contract tests (standard library only; no model downloads or GPU):
+
+```bash
+uv run --offline --no-project python -m unittest discover -s tests -p test_api_contract.py -v
+```
+
+These tests exercise server and notebook handler definitions using dependency
+doubles. The separate authentication tests exercise real FastAPI routing with
+mocked inference; neither suite starts a live Colab runtime.
+
 ## Supported Models
 
 Any HuggingFace model that works with `AutoModelForCausalLM` + `AutoTokenizer` works here.

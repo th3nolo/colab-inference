@@ -23,6 +23,7 @@ def load_server():
     ns = {'__name__': 'test_server'}
     model = Mock()
     model.device = 'cpu'
+    model.generation_config.eos_token_id = 2
     model.config.max_position_embeddings = 8192
     model.parameters.side_effect = lambda: iter([types.SimpleNamespace(device=types.SimpleNamespace(type='cpu'))])
     inputs = {'input_ids': types.SimpleNamespace(shape=(1, 4))}
@@ -32,10 +33,13 @@ def load_server():
     tokenizer = Mock(return_value=Inputs(inputs))
     tokenizer.apply_chat_template.return_value = 'hello'
     tokenizer.decode.return_value = 'answer'
+    class Scalar(int):
+        def item(self):
+            return int(self)
     class Output:
         shape = (1, 6)
         def __getitem__(self, item):
-            return [0, 1, 2, 3, 4, 5]
+            return [Scalar(t) for t in [0, 1, 2, 3, 4, 5]]
     model.generate.return_value = Output()
     ns.update(model=model, tokenizer=tokenizer)
     with patch.dict(os.environ, {'COLAB_API_TOKEN': TOKEN}), patch.dict('sys.modules', {
@@ -43,6 +47,7 @@ def load_server():
         'uvicorn': types.SimpleNamespace(),
     }):
         exec(compile(config, 'config', 'exec'), ns)
+        ns['LOADED_MODEL_ID'] = ns['CONFIG']['model_id']
         exec(compile(api, 'api', 'exec'), ns)
     return ns
 
@@ -75,6 +80,27 @@ class AuthTests(unittest.TestCase):
         self.assertEqual(self.ns['model'].generate.call_args.kwargs['max_new_tokens'], 17)
         for value in (0, -1, 1025, 1.5, True, '10'):
             self.assertEqual(self.post(max_tokens=value).status_code, 422, value)
+
+    def test_api_contract_with_authentication_and_busy_slot(self):
+        # Invalid credentials still win over API errors, even with a busy slot.
+        self.ns['inference_slots'].acquire()
+        try:
+            for changes, param in [({'model': 'not-loaded'}, 'model'), ({'stream': True}, 'stream')]:
+                response = self.client.post('/v1/chat/completions', json=self.payload | changes)
+                self.assertEqual(response.status_code, 401)
+                response = self.post(**changes)
+                self.assertEqual(response.status_code, 400)
+                self.assertEqual(response.json()['detail']['param'], param)
+            self.assertEqual(self.post().status_code, 429)
+        finally:
+            self.ns['inference_slots'].release()
+        self.ns['tokenizer'].assert_not_called()
+        self.ns['tokenizer'].apply_chat_template.assert_not_called()
+        self.ns['model'].generate.assert_not_called()
+        response = self.post(max_tokens=2)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()['model'], self.ns['LOADED_MODEL_ID'])
+        self.assertEqual(response.json()['choices'][0]['finish_reason'], 'length')
 
     def test_pre_tokenization_limits(self):
         for messages in ([], [{'role': 'user', 'content': 'x'}]*65,
