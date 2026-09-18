@@ -4,11 +4,13 @@ import http from 'node:http';
 import { once } from 'node:events';
 import { startProxy, createProxy } from '../proxy.mjs';
 
+const apiToken = 'test-only-' + 'x'.repeat(32);
+
 async function fixture(t, handler, options = {}) {
   const upstream = http.createServer(handler);
   upstream.listen(0, '127.0.0.1');
   await once(upstream, 'listening');
-  const proxy = startProxy({ tunnel: `http://127.0.0.1:${upstream.address().port}`, ...options }, 0);
+  const proxy = startProxy({ apiToken, tunnel: `http://127.0.0.1:${upstream.address().port}`, ...options }, 0);
   await once(proxy, 'listening');
   t.after(() => { proxy.closeAllConnections(); proxy.close(); upstream.closeAllConnections(); upstream.close(); });
   return { proxy, port: proxy.address().port, url: `http://127.0.0.1:${proxy.address().port}` };
@@ -116,10 +118,10 @@ test('redirects are not followed', async t => {
 test('configuration rejects wildcard origins and unbounded limits', () => {
   const tunnel = 'http://127.0.0.1:1234';
   for (const allowedOrigins of [['*'], ['null'], ['https://example.com/path']]) {
-    assert.throws(() => createProxy({ tunnel, allowedOrigins }));
+    assert.throws(() => createProxy({ apiToken, tunnel, allowedOrigins }));
   }
-  assert.throws(() => createProxy({ tunnel, upstreamTimeoutMs: 0 }));
-  assert.throws(() => createProxy({ tunnel: `${tunnel}/path` }));
+  assert.throws(() => createProxy({ apiToken, tunnel, upstreamTimeoutMs: 0 }));
+  assert.throws(() => createProxy({ apiToken, tunnel: `${tunnel}/path` }));
 });
 
 test('client disconnect cancels an upstream response already streaming', async t => {
@@ -146,4 +148,30 @@ test('aborted partial uploads never reach upstream', async t => {
   req.destroy();
   await aborted;
   assert.equal(calls, 0);
+});
+
+
+test('configured bearer token replaces client auth on every upstream request', async t => {
+  const f = await fixture(t, (req, res) => {
+    assert.equal(req.headers.authorization, `Bearer ${apiToken}`);
+    res.writeHead(429, { 'Retry-After': '1', 'WWW-Authenticate': 'Bearer' });
+    res.end('{}');
+  });
+  for (const path of ['/health', '/v1/models', '/v1/chat/completions']) {
+    const response = await fetch(f.url + path, { headers: { Authorization: 'Bearer caller-value' } });
+    assert.equal(response.status, 429);
+    assert.equal(response.headers.get('retry-after'), '1');
+    assert.equal(response.headers.get('www-authenticate'), 'Bearer');
+    await response.text();
+  }
+});
+
+test('missing or malformed configured token fails closed without echoing it', () => {
+  for (const value of [undefined, '', 'short-secret', apiToken + '\n', 'x'.repeat(257), 'bad token' + 'x'.repeat(32)]) {
+    assert.throws(() => createProxy({ tunnel: 'https://example.com', apiToken: value }), error => {
+      assert.match(error.message, /COLAB_API_TOKEN/);
+      if (value) assert.ok(!error.message.includes(value));
+      return true;
+    });
+  }
 });

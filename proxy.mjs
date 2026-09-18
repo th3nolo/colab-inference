@@ -5,8 +5,11 @@ import { Readable } from 'node:stream';
 import { pipeline } from 'node:stream/promises';
 import { pathToFileURL } from 'node:url';
 
-export function createProxy({ tunnel, allowedOrigins = [], maxBodyBytes = 1024 * 1024,
+export function createProxy({ tunnel, apiToken, allowedOrigins = [], maxBodyBytes = 1024 * 1024,
   upstreamTimeoutMs = 300_000 } = {}) {
+  if (typeof apiToken !== 'string' || !/^[A-Za-z0-9_-]{32,256}$/.test(apiToken) || apiToken.trim() !== apiToken) {
+    throw new Error('Set COLAB_API_TOKEN to the same 32-256 character URL-safe token used by Colab');
+  }
   const target = new URL(tunnel);
   if (!['http:', 'https:'].includes(target.protocol) || target.username || target.password ||
       target.pathname !== '/' || target.search || target.hash) {
@@ -92,7 +95,7 @@ export function createProxy({ tunnel, allowedOrigins = [], maxBodyBytes = 1024 *
       try {
         const upstream = await fetch(`${target.origin}${req.url}`, {
           method: req.method,
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiToken}` },
           ...(bytes ? { body: Buffer.concat(chunks, bytes) } : {}),
           signal: controller.signal,
           redirect: 'error',
@@ -100,6 +103,8 @@ export function createProxy({ tunnel, allowedOrigins = [], maxBodyBytes = 1024 *
         if (res.destroyed) return;
         res.writeHead(upstream.status, {
           'Content-Type': upstream.headers.get('content-type') || 'application/json',
+          ...(upstream.headers.has('retry-after') ? { 'Retry-After': upstream.headers.get('retry-after') } : {}),
+          ...(upstream.headers.has('www-authenticate') ? { 'WWW-Authenticate': upstream.headers.get('www-authenticate') } : {}),
         });
         if (upstream.body) await pipeline(Readable.fromWeb(upstream.body), res);
         else res.end();
@@ -125,7 +130,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   try {
     const port = Number(process.argv[3] || '3000');
     if (!Number.isInteger(port) || port < 1 || port > 65535) throw new Error('Invalid port');
-    const server = startProxy({ tunnel: process.argv[2],
+    const server = startProxy({ tunnel: process.argv[2], apiToken: process.env.COLAB_API_TOKEN,
       allowedOrigins: (process.env.PROXY_ALLOWED_ORIGINS || '').split(',').filter(Boolean),
       upstreamTimeoutMs: Number(process.env.PROXY_UPSTREAM_TIMEOUT_MS || 300_000),
     }, port);

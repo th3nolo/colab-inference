@@ -19,11 +19,34 @@ CONFIG = {
     "model_id": "LiquidAI/LFM2.5-1.2B-Instruct",
     "dtype": "bfloat16",
     "max_new_tokens": 512,
+    "max_input_chars": 16000,
+    "max_input_tokens": 4096,
+    "max_output_tokens": 1024,
+    "max_messages": 64,
+    "max_concurrent_requests": 1,
     "temperature": 0.1,
     "top_k": 50,
     "repetition_penalty": 1.05,
     "port": 8000,
 }
+
+# Read the shared secret before installing dependencies or loading the model.
+import os, re, secrets
+
+API_TOKEN = os.environ.get("COLAB_API_TOKEN")
+if API_TOKEN is None:
+    try:
+        from google.colab import userdata
+        API_TOKEN = userdata.get("COLAB_API_TOKEN")
+    except Exception:
+        raise RuntimeError("Set COLAB_API_TOKEN in the environment or Colab Secrets and enable notebook access") from None
+if not isinstance(API_TOKEN, str) or not re.fullmatch(r"[A-Za-z0-9_-]{32,256}", API_TOKEN):
+    raise RuntimeError("COLAB_API_TOKEN must contain 32-256 URL-safe characters; generate it with secrets.token_urlsafe(32)")
+for key in ("max_new_tokens", "max_input_chars", "max_input_tokens", "max_output_tokens", "max_messages", "max_concurrent_requests"):
+    if type(CONFIG[key]) is not int or CONFIG[key] < 1:
+        raise RuntimeError(f"CONFIG[{key!r}] must be a positive integer")
+if CONFIG["max_new_tokens"] > CONFIG["max_output_tokens"]:
+    raise RuntimeError("max_new_tokens must not exceed max_output_tokens")
 
 # ── Step 1: Install dependencies ────────────────────────────────────────────────
 
@@ -56,22 +79,40 @@ print(f"[2/4] Model loaded: {CONFIG['model_id']} on {next(model.parameters()).de
 
 import threading, uuid, time as _time
 import torch
-from fastapi import FastAPI
-from pydantic import BaseModel
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.responses import JSONResponse
+from fastapi.exceptions import RequestValidationError
+from pydantic import BaseModel, Field
 import uvicorn
 
-app = FastAPI(title="Colab Inference Server")
+app = FastAPI(title="Colab Inference Server", docs_url=None, redoc_url=None, openapi_url=None)
+inference_slots = threading.BoundedSemaphore(CONFIG["max_concurrent_requests"])
+
+@app.middleware("http")
+async def authenticate(request: Request, call_next):
+    values = request.headers.getlist("authorization")
+    parts = values[0].split(" ") if len(values) == 1 else []
+    if (len(parts) != 2 or parts[0].lower() != "bearer"
+            or not secrets.compare_digest(parts[1].encode(), API_TOKEN.encode())):
+        return JSONResponse({"detail": "Invalid or missing bearer token"}, status_code=401,
+                            headers={"WWW-Authenticate": "Bearer"})
+    return await call_next(request)
+
+@app.exception_handler(RequestValidationError)
+async def invalid_request(request, exc):
+    # Do not echo input (which may contain private prompts) in validation errors.
+    return JSONResponse({"detail": "Invalid request parameters"}, status_code=422)
 
 class ChatMessage(BaseModel):
-    role: str
-    content: str
+    role: str = Field(max_length=32)
+    content: str = Field(max_length=CONFIG["max_input_chars"])
 
 class ChatRequest(BaseModel):
     model: str = CONFIG["model_id"]
-    messages: list[ChatMessage]
-    max_tokens: int = CONFIG["max_new_tokens"]
-    temperature: float = CONFIG["temperature"]
-    top_k: int = CONFIG["top_k"]
+    messages: list[ChatMessage] = Field(min_length=1, max_length=CONFIG["max_messages"])
+    max_tokens: int = Field(default=CONFIG["max_new_tokens"], strict=True, ge=1, le=CONFIG["max_output_tokens"])
+    temperature: float = Field(default=CONFIG["temperature"], ge=0, le=2, allow_inf_nan=False)
+    top_k: int = Field(default=CONFIG["top_k"], strict=True, ge=1, le=1000)
     stream: bool = False
 
 @app.get("/v1/models")
@@ -84,10 +125,28 @@ def health():
 
 @app.post("/v1/chat/completions")
 def chat(req: ChatRequest):
+    if sum(len(m.content) + len(m.role) for m in req.messages) > CONFIG["max_input_chars"]:
+        raise HTTPException(413, "Input exceeds max_input_chars")
+    if not inference_slots.acquire(blocking=False):
+        raise HTTPException(429, "Inference is busy; retry shortly", headers={"Retry-After": "1"})
+    try:
+        return generate_completion(req)
+    finally:
+        inference_slots.release()
+
+
+def generate_completion(req: ChatRequest):
     messages = [{"role": m.role, "content": m.content} for m in req.messages]
     text = tokenizer.apply_chat_template(messages, add_generation_prompt=True, tokenize=False)
-    inputs = tokenizer(text, return_tensors="pt").to(model.device)
+    inputs = tokenizer(text, return_tensors="pt", truncation=True,
+                       max_length=CONFIG["max_input_tokens"] + 1)
     input_len = inputs["input_ids"].shape[1]
+    if input_len > CONFIG["max_input_tokens"]:
+        raise HTTPException(413, "Input exceeds max_input_tokens")
+    context_limit = getattr(model.config, "max_position_embeddings", None)
+    if isinstance(context_limit, int) and input_len + req.max_tokens > context_limit:
+        raise HTTPException(413, "Input plus requested output exceeds model context")
+    inputs = inputs.to(model.device)
 
     if next(model.parameters()).device.type == "cuda":
         torch.cuda.synchronize()
@@ -154,6 +213,7 @@ if tunnel_url:
     print(f"  Chat:     {tunnel_url}/v1/chat/completions")
     print(f"  Health:   {tunnel_url}/health")
     print(f"\n  curl -s -X POST {tunnel_url}/v1/chat/completions \\")
+    print('    -H "Authorization: Bearer $COLAB_API_TOKEN" \\')
     print(f'    -H "Content-Type: application/json" \\')
     print(f"    -d '{{\"messages\":[{{\"role\":\"user\",\"content\":\"Hello!\"}}]}}'")
 else:
