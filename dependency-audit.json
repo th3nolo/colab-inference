@@ -1,0 +1,746 @@
+{
+  "checked_at": "2026-09-18T06:28:40.421294+00:00",
+  "release_cutoff": "2026-09-14T00:00:00Z",
+  "packages": [
+    {
+      "name": "accelerate",
+      "version": "1.15.0",
+      "metadata_url": "https://pypi.org/pypi/accelerate/1.15.0/json",
+      "first_uploaded": "2026-09-09T13:04:47.331389Z",
+      "project_urls": {
+        "Homepage": "https://github.com/huggingface/accelerate"
+      },
+      "advisories": []
+    },
+    {
+      "name": "annotated-doc",
+      "version": "0.0.5",
+      "metadata_url": "https://pypi.org/pypi/annotated-doc/0.0.5/json",
+      "first_uploaded": "2026-07-28T13:50:57.239109Z",
+      "project_urls": {
+        "Changelog": "https://github.com/fastapi/annotated-doc/release-notes.md",
+        "Documentation": "https://github.com/fastapi/annotated-doc",
+        "Homepage": "https://github.com/fastapi/annotated-doc",
+        "Issues": "https://github.com/fastapi/annotated-doc/issues",
+        "Repository": "https://github.com/fastapi/annotated-doc"
+      },
+      "advisories": []
+    },
+    {
+      "name": "annotated-types",
+      "version": "0.8.0",
+      "metadata_url": "https://pypi.org/pypi/annotated-types/0.8.0/json",
+      "first_uploaded": "2026-07-23T20:16:12.938651Z",
+      "project_urls": {
+        "Changelog": "https://github.com/annotated-types/annotated-types/releases",
+        "Homepage": "https://github.com/annotated-types/annotated-types",
+        "Source": "https://github.com/annotated-types/annotated-types"
+      },
+      "advisories": []
+    },
+    {
+      "name": "anyio",
+      "version": "4.15.1",
+      "metadata_url": "https://pypi.org/pypi/anyio/4.15.1/json",
+      "first_uploaded": "2026-09-05T10:42:37.923487Z",
+      "project_urls": {
+        "Changelog": "https://anyio.readthedocs.io/en/stable/versionhistory.html",
+        "Documentation": "https://anyio.readthedocs.io/en/latest/",
+        "Issue tracker": "https://github.com/agronholm/anyio/issues",
+        "Source code": "https://github.com/agronholm/anyio"
+      },
+      "advisories": []
+    },
+    {
+      "name": "certifi",
+      "version": "2026.7.22",
+      "metadata_url": "https://pypi.org/pypi/certifi/2026.7.22/json",
+      "first_uploaded": "2026-07-22T03:35:11.276376Z",
+      "project_urls": {
+        "Homepage": "https://github.com/certifi/python-certifi",
+        "Source": "https://github.com/certifi/python-certifi"
+      },
+      "advisories": []
+    },
+    {
+      "name": "click",
+      "version": "8.5.0",
+      "metadata_url": "https://pypi.org/pypi/click/8.5.0/json",
+      "first_uploaded": "2026-08-26T13:33:12.928043Z",
+      "project_urls": {
+        "Changes": "https://click.palletsprojects.com/page/changes/",
+        "Chat": "https://discord.gg/pallets",
+        "Documentation": "https://click.palletsprojects.com/",
+        "Donate": "https://palletsprojects.com/donate",
+        "Source": "https://github.com/pallets/click/"
+      },
+      "advisories": []
+    },
+    {
+      "name": "cuda-bindings",
+      "version": "12.9.7",
+      "metadata_url": "https://pypi.org/pypi/cuda-bindings/12.9.7/json",
+      "first_uploaded": "2026-05-27T18:44:02.409207Z",
+      "project_urls": {
+        "Documentation": "https://nvidia.github.io/cuda-python/",
+        "Repository": "https://github.com/NVIDIA/cuda-python"
+      },
+      "advisories": []
+    },
+    {
+      "name": "cuda-pathfinder",
+      "version": "1.8.1",
+      "metadata_url": "https://pypi.org/pypi/cuda-pathfinder/1.8.1/json",
+      "first_uploaded": "2026-09-02T16:55:28.640054Z",
+      "project_urls": {
+        "Documentation": "https://nvidia.github.io/cuda-python/",
+        "Repository": "https://github.com/NVIDIA/cuda-python"
+      },
+      "advisories": []
+    },
+    {
+      "name": "cuda-toolkit",
+      "version": "12.6.3",
+      "metadata_url": "https://pypi.org/pypi/cuda-toolkit/12.6.3/json",
+      "first_uploaded": "2025-08-13T02:03:05.283336Z",
+      "project_urls": {
+        "documentation": "https://docs.nvidia.com/cuda/",
+        "homepage": "https://developer.nvidia.com/cuda-toolkit"
+      },
+      "advisories": []
+    },
+    {
+      "name": "fastapi",
+      "version": "0.141.1",
+      "metadata_url": "https://pypi.org/pypi/fastapi/0.141.1/json",
+      "first_uploaded": "2026-07-29T17:18:04.364385Z",
+      "project_urls": {
+        "Changelog": "https://fastapi.tiangolo.com/release-notes/",
+        "Documentation": "https://fastapi.tiangolo.com/",
+        "Homepage": "https://github.com/fastapi/fastapi",
+        "Issues": "https://github.com/fastapi/fastapi/issues",
+        "Repository": "https://github.com/fastapi/fastapi"
+      },
+      "advisories": []
+    },
+    {
+      "name": "filelock",
+      "version": "3.32.6",
+      "metadata_url": "https://pypi.org/pypi/filelock/3.32.6/json",
+      "first_uploaded": "2026-09-08T22:57:10.182186Z",
+      "project_urls": {
+        "Documentation": "https://py-filelock.readthedocs.io",
+        "Homepage": "https://github.com/tox-dev/py-filelock",
+        "Source": "https://github.com/tox-dev/py-filelock",
+        "Tracker": "https://github.com/tox-dev/py-filelock/issues"
+      },
+      "advisories": []
+    },
+    {
+      "name": "fsspec",
+      "version": "2026.7.0",
+      "metadata_url": "https://pypi.org/pypi/fsspec/2026.7.0/json",
+      "first_uploaded": "2026-07-28T16:34:49.538692Z",
+      "project_urls": {
+        "Changelog": "https://filesystem-spec.readthedocs.io/en/latest/changelog.html",
+        "Documentation": "https://filesystem-spec.readthedocs.io/en/latest/",
+        "Homepage": "https://github.com/fsspec/filesystem_spec"
+      },
+      "advisories": []
+    },
+    {
+      "name": "h11",
+      "version": "0.16.0",
+      "metadata_url": "https://pypi.org/pypi/h11/0.16.0/json",
+      "first_uploaded": "2025-04-24T03:35:24.344199Z",
+      "project_urls": {
+        "Homepage": "https://github.com/python-hyper/h11"
+      },
+      "advisories": []
+    },
+    {
+      "name": "hf-xet",
+      "version": "1.6.0",
+      "metadata_url": "https://pypi.org/pypi/hf-xet/1.6.0/json",
+      "first_uploaded": "2026-08-03T22:32:47.364941Z",
+      "project_urls": {
+        "Documentation": "https://huggingface.co/docs/hub/xet/index",
+        "Homepage": "https://github.com/huggingface/xet-core",
+        "Issues": "https://github.com/huggingface/xet-core/issues",
+        "Repository": "https://github.com/huggingface/xet-core.git"
+      },
+      "advisories": []
+    },
+    {
+      "name": "httpcore",
+      "version": "1.0.9",
+      "metadata_url": "https://pypi.org/pypi/httpcore/1.0.9/json",
+      "first_uploaded": "2025-04-24T22:06:20.566605Z",
+      "project_urls": {
+        "Documentation": "https://www.encode.io/httpcore",
+        "Homepage": "https://www.encode.io/httpcore/",
+        "Source": "https://github.com/encode/httpcore"
+      },
+      "advisories": []
+    },
+    {
+      "name": "httpx",
+      "version": "0.28.1",
+      "metadata_url": "https://pypi.org/pypi/httpx/0.28.1/json",
+      "first_uploaded": "2024-12-06T15:37:21.509172Z",
+      "project_urls": {
+        "Changelog": "https://github.com/encode/httpx/blob/master/CHANGELOG.md",
+        "Documentation": "https://www.python-httpx.org",
+        "Homepage": "https://github.com/encode/httpx",
+        "Source": "https://github.com/encode/httpx"
+      },
+      "advisories": []
+    },
+    {
+      "name": "huggingface-hub",
+      "version": "1.31.0",
+      "metadata_url": "https://pypi.org/pypi/huggingface-hub/1.31.0/json",
+      "first_uploaded": "2026-09-10T10:27:20.798825Z",
+      "project_urls": {
+        "Homepage": "https://github.com/huggingface/huggingface_hub"
+      },
+      "advisories": []
+    },
+    {
+      "name": "idna",
+      "version": "3.19",
+      "metadata_url": "https://pypi.org/pypi/idna/3.19/json",
+      "first_uploaded": "2026-08-18T05:14:22.343598Z",
+      "project_urls": {
+        "Changelog": "https://github.com/kjd/idna/blob/master/HISTORY.md",
+        "Issue tracker": "https://github.com/kjd/idna/issues",
+        "Source": "https://github.com/kjd/idna"
+      },
+      "advisories": []
+    },
+    {
+      "name": "jinja2",
+      "version": "3.1.6",
+      "metadata_url": "https://pypi.org/pypi/jinja2/3.1.6/json",
+      "first_uploaded": "2025-03-05T20:05:00.369721Z",
+      "project_urls": {
+        "Changes": "https://jinja.palletsprojects.com/changes/",
+        "Chat": "https://discord.gg/pallets",
+        "Documentation": "https://jinja.palletsprojects.com/",
+        "Donate": "https://palletsprojects.com/donate",
+        "Source": "https://github.com/pallets/jinja/"
+      },
+      "advisories": []
+    },
+    {
+      "name": "markdown-it-py",
+      "version": "4.2.0",
+      "metadata_url": "https://pypi.org/pypi/markdown-it-py/4.2.0/json",
+      "first_uploaded": "2026-05-07T12:08:27.182789Z",
+      "project_urls": {
+        "Documentation": "https://markdown-it-py.readthedocs.io",
+        "Homepage": "https://github.com/executablebooks/markdown-it-py"
+      },
+      "advisories": []
+    },
+    {
+      "name": "markupsafe",
+      "version": "3.0.3",
+      "metadata_url": "https://pypi.org/pypi/markupsafe/3.0.3/json",
+      "first_uploaded": "2025-09-27T18:36:05.558229Z",
+      "project_urls": {
+        "Changes": "https://markupsafe.palletsprojects.com/page/changes/",
+        "Chat": "https://discord.gg/pallets",
+        "Documentation": "https://markupsafe.palletsprojects.com/",
+        "Donate": "https://palletsprojects.com/donate",
+        "Source": "https://github.com/pallets/markupsafe/"
+      },
+      "advisories": []
+    },
+    {
+      "name": "mdurl",
+      "version": "0.1.2",
+      "metadata_url": "https://pypi.org/pypi/mdurl/0.1.2/json",
+      "first_uploaded": "2022-08-14T12:40:09.779676Z",
+      "project_urls": {
+        "Homepage": "https://github.com/executablebooks/mdurl"
+      },
+      "advisories": []
+    },
+    {
+      "name": "mpmath",
+      "version": "1.3.0",
+      "metadata_url": "https://pypi.org/pypi/mpmath/1.3.0/json",
+      "first_uploaded": "2023-03-07T16:47:09.197171Z",
+      "project_urls": {
+        "Documentation": "http://mpmath.org/doc/current/",
+        "Homepage": "http://mpmath.org/",
+        "Source": "https://github.com/fredrik-johansson/mpmath",
+        "Tracker": "https://github.com/fredrik-johansson/mpmath/issues"
+      },
+      "advisories": []
+    },
+    {
+      "name": "networkx",
+      "version": "3.6.1",
+      "metadata_url": "https://pypi.org/pypi/networkx/3.6.1/json",
+      "first_uploaded": "2025-12-08T17:02:38.159362Z",
+      "project_urls": {
+        "Bug Tracker": "https://github.com/networkx/networkx/issues",
+        "Documentation": "https://networkx.org/documentation/stable/",
+        "Homepage": "https://networkx.org/",
+        "Source Code": "https://github.com/networkx/networkx"
+      },
+      "advisories": []
+    },
+    {
+      "name": "numpy",
+      "version": "2.5.3",
+      "metadata_url": "https://pypi.org/pypi/numpy/2.5.3/json",
+      "first_uploaded": "2026-09-06T16:24:29.244371Z",
+      "project_urls": {
+        "documentation": "https://numpy.org/doc/",
+        "download": "https://pypi.org/project/numpy/#files",
+        "homepage": "https://numpy.org",
+        "release notes": "https://numpy.org/doc/stable/release",
+        "source": "https://github.com/numpy/numpy",
+        "tracker": "https://github.com/numpy/numpy/issues"
+      },
+      "advisories": []
+    },
+    {
+      "name": "nvidia-cublas-cu12",
+      "version": "12.6.4.1",
+      "metadata_url": "https://pypi.org/pypi/nvidia-cublas-cu12/12.6.4.1/json",
+      "first_uploaded": "2024-11-20T17:39:52.715709Z",
+      "project_urls": {
+        "Homepage": "https://developer.nvidia.com/cuda-zone"
+      },
+      "advisories": []
+    },
+    {
+      "name": "nvidia-cuda-cupti-cu12",
+      "version": "12.6.80",
+      "metadata_url": "https://pypi.org/pypi/nvidia-cuda-cupti-cu12/12.6.80/json",
+      "first_uploaded": "2024-10-01T16:57:45.507080Z",
+      "project_urls": {
+        "Homepage": "https://developer.nvidia.com/cuda-zone"
+      },
+      "advisories": []
+    },
+    {
+      "name": "nvidia-cuda-nvrtc-cu12",
+      "version": "12.6.85",
+      "metadata_url": "https://pypi.org/pypi/nvidia-cuda-nvrtc-cu12/12.6.85/json",
+      "first_uploaded": "2024-11-20T17:37:42.967549Z",
+      "project_urls": {
+        "Homepage": "https://developer.nvidia.com/cuda-zone"
+      },
+      "advisories": []
+    },
+    {
+      "name": "nvidia-cuda-runtime-cu12",
+      "version": "12.6.77",
+      "metadata_url": "https://pypi.org/pypi/nvidia-cuda-runtime-cu12/12.6.77/json",
+      "first_uploaded": "2024-10-01T16:57:22.221727Z",
+      "project_urls": {
+        "Homepage": "https://developer.nvidia.com/cuda-zone"
+      },
+      "advisories": []
+    },
+    {
+      "name": "nvidia-cudnn-cu12",
+      "version": "9.10.2.21",
+      "metadata_url": "https://pypi.org/pypi/nvidia-cudnn-cu12/9.10.2.21/json",
+      "first_uploaded": "2025-06-06T21:52:51.348078Z",
+      "project_urls": {
+        "Homepage": "https://developer.nvidia.com/cuda-zone"
+      },
+      "advisories": []
+    },
+    {
+      "name": "nvidia-cufft-cu12",
+      "version": "11.3.0.4",
+      "metadata_url": "https://pypi.org/pypi/nvidia-cufft-cu12/11.3.0.4/json",
+      "first_uploaded": "2024-10-01T17:03:24.212964Z",
+      "project_urls": {
+        "Homepage": "https://developer.nvidia.com/cuda-zone"
+      },
+      "advisories": []
+    },
+    {
+      "name": "nvidia-cufile-cu12",
+      "version": "1.11.1.6",
+      "metadata_url": "https://pypi.org/pypi/nvidia-cufile-cu12/1.11.1.6/json",
+      "first_uploaded": "2024-11-20T17:41:49.376480Z",
+      "project_urls": {
+        "Homepage": "https://developer.nvidia.com/cuda-zone"
+      },
+      "advisories": []
+    },
+    {
+      "name": "nvidia-curand-cu12",
+      "version": "10.3.7.77",
+      "metadata_url": "https://pypi.org/pypi/nvidia-curand-cu12/10.3.7.77/json",
+      "first_uploaded": "2024-10-01T17:04:18.981058Z",
+      "project_urls": {
+        "Homepage": "https://developer.nvidia.com/cuda-zone"
+      },
+      "advisories": []
+    },
+    {
+      "name": "nvidia-cusolver-cu12",
+      "version": "11.7.1.2",
+      "metadata_url": "https://pypi.org/pypi/nvidia-cusolver-cu12/11.7.1.2/json",
+      "first_uploaded": "2024-10-01T17:05:05.591080Z",
+      "project_urls": {
+        "Homepage": "https://developer.nvidia.com/cuda-zone"
+      },
+      "advisories": []
+    },
+    {
+      "name": "nvidia-cusparse-cu12",
+      "version": "12.5.4.2",
+      "metadata_url": "https://pypi.org/pypi/nvidia-cusparse-cu12/12.5.4.2/json",
+      "first_uploaded": "2024-10-01T17:06:03.826736Z",
+      "project_urls": {
+        "Homepage": "https://developer.nvidia.com/cuda-zone"
+      },
+      "advisories": []
+    },
+    {
+      "name": "nvidia-cusparselt-cu12",
+      "version": "0.7.1",
+      "metadata_url": "https://pypi.org/pypi/nvidia-cusparselt-cu12/0.7.1/json",
+      "first_uploaded": "2025-02-26T00:14:47.204539Z",
+      "project_urls": {
+        "Homepage": "https://developer.nvidia.com/cusparselt"
+      },
+      "advisories": []
+    },
+    {
+      "name": "nvidia-nccl-cu12",
+      "version": "2.29.3",
+      "metadata_url": "https://pypi.org/pypi/nvidia-nccl-cu12/2.29.3/json",
+      "first_uploaded": "2026-02-03T21:10:58.804602Z",
+      "project_urls": {
+        "Homepage": "https://developer.nvidia.com/cuda-zone"
+      },
+      "advisories": []
+    },
+    {
+      "name": "nvidia-nvjitlink-cu12",
+      "version": "12.6.85",
+      "metadata_url": "https://pypi.org/pypi/nvidia-nvjitlink-cu12/12.6.85/json",
+      "first_uploaded": "2024-11-20T17:46:29.758782Z",
+      "project_urls": {
+        "Homepage": "https://developer.nvidia.com/cuda-zone"
+      },
+      "advisories": []
+    },
+    {
+      "name": "nvidia-nvshmem-cu12",
+      "version": "3.4.5",
+      "metadata_url": "https://pypi.org/pypi/nvidia-nvshmem-cu12/3.4.5/json",
+      "first_uploaded": "2025-09-06T00:32:05.589455Z",
+      "project_urls": {
+        "Homepage": "https://developer.nvidia.com/cuda-zone"
+      },
+      "advisories": []
+    },
+    {
+      "name": "nvidia-nvtx-cu12",
+      "version": "12.6.77",
+      "metadata_url": "https://pypi.org/pypi/nvidia-nvtx-cu12/12.6.77/json",
+      "first_uploaded": "2024-10-01T17:00:27.179728Z",
+      "project_urls": {
+        "Homepage": "https://developer.nvidia.com/cuda-zone"
+      },
+      "advisories": []
+    },
+    {
+      "name": "packaging",
+      "version": "26.3",
+      "metadata_url": "https://pypi.org/pypi/packaging/26.3/json",
+      "first_uploaded": "2026-08-04T18:15:27.159957Z",
+      "project_urls": {
+        "Documentation": "https://packaging.pypa.io/",
+        "Source": "https://github.com/pypa/packaging"
+      },
+      "advisories": []
+    },
+    {
+      "name": "psutil",
+      "version": "7.2.2",
+      "metadata_url": "https://pypi.org/pypi/psutil/7.2.2/json",
+      "first_uploaded": "2026-01-28T18:14:54.428400Z",
+      "project_urls": {
+        "Homepage": "https://github.com/giampaolo/psutil"
+      },
+      "advisories": []
+    },
+    {
+      "name": "pydantic",
+      "version": "2.13.5",
+      "metadata_url": "https://pypi.org/pypi/pydantic/2.13.5/json",
+      "first_uploaded": "2026-08-28T14:03:59.136157Z",
+      "project_urls": {
+        "Changelog": "https://docs.pydantic.dev/latest/changelog/",
+        "Documentation": "https://docs.pydantic.dev",
+        "Funding": "https://github.com/sponsors/samuelcolvin",
+        "Homepage": "https://github.com/pydantic/pydantic",
+        "Source": "https://github.com/pydantic/pydantic"
+      },
+      "advisories": []
+    },
+    {
+      "name": "pydantic-core",
+      "version": "2.46.5",
+      "metadata_url": "https://pypi.org/pypi/pydantic-core/2.46.5/json",
+      "first_uploaded": "2026-08-28T09:57:35.421713Z",
+      "project_urls": {
+        "Funding": "https://github.com/sponsors/samuelcolvin",
+        "Homepage": "https://github.com/pydantic",
+        "Source": "https://github.com/pydantic/pydantic/tree/main/pydantic-core"
+      },
+      "advisories": []
+    },
+    {
+      "name": "pygments",
+      "version": "2.21.0",
+      "metadata_url": "https://pypi.org/pypi/pygments/2.21.0/json",
+      "first_uploaded": "2026-08-17T08:02:44.912148Z",
+      "project_urls": {
+        "Bug Tracker": "https://github.com/pygments/pygments/issues",
+        "Changelog": "https://github.com/pygments/pygments/blob/master/CHANGES",
+        "Documentation": "https://pygments.org/docs",
+        "Homepage": "https://pygments.org",
+        "Source": "https://github.com/pygments/pygments"
+      },
+      "advisories": []
+    },
+    {
+      "name": "pyyaml",
+      "version": "6.0.3",
+      "metadata_url": "https://pypi.org/pypi/pyyaml/6.0.3/json",
+      "first_uploaded": "2025-09-25T21:31:46.040932Z",
+      "project_urls": {
+        "Bug Tracker": "https://github.com/yaml/pyyaml/issues",
+        "CI": "https://github.com/yaml/pyyaml/actions",
+        "Documentation": "https://pyyaml.org/wiki/PyYAMLDocumentation",
+        "Download": "https://pypi.org/project/PyYAML/",
+        "Homepage": "https://pyyaml.org/",
+        "Mailing lists": "http://lists.sourceforge.net/lists/listinfo/yaml-core",
+        "Source Code": "https://github.com/yaml/pyyaml"
+      },
+      "advisories": []
+    },
+    {
+      "name": "regex",
+      "version": "2026.9.10",
+      "metadata_url": "https://pypi.org/pypi/regex/2026.9.10/json",
+      "first_uploaded": "2026-09-09T20:56:21.178851Z",
+      "project_urls": {
+        "Homepage": "https://github.com/mrabarnett/mrab-regex"
+      },
+      "advisories": []
+    },
+    {
+      "name": "rich",
+      "version": "15.0.0",
+      "metadata_url": "https://pypi.org/pypi/rich/15.0.0/json",
+      "first_uploaded": "2026-04-12T08:24:00.750018Z",
+      "project_urls": {
+        "Documentation": "https://rich.readthedocs.io/en/latest/",
+        "Homepage": "https://github.com/Textualize/rich"
+      },
+      "advisories": []
+    },
+    {
+      "name": "safetensors",
+      "version": "0.8.0",
+      "metadata_url": "https://pypi.org/pypi/safetensors/0.8.0/json",
+      "first_uploaded": "2026-06-09T07:52:07.624876Z",
+      "project_urls": {
+        "Homepage": "https://github.com/huggingface/safetensors",
+        "Source": "https://github.com/huggingface/safetensors"
+      },
+      "advisories": []
+    },
+    {
+      "name": "setuptools",
+      "version": "84.0.0",
+      "metadata_url": "https://pypi.org/pypi/setuptools/84.0.0/json",
+      "first_uploaded": "2026-08-08T18:27:56.719708Z",
+      "project_urls": {
+        "Changelog": "https://setuptools.pypa.io/en/stable/history.html",
+        "Documentation": "https://setuptools.pypa.io/",
+        "Source": "https://github.com/pypa/setuptools"
+      },
+      "advisories": []
+    },
+    {
+      "name": "shellingham",
+      "version": "1.5.4",
+      "metadata_url": "https://pypi.org/pypi/shellingham/1.5.4/json",
+      "first_uploaded": "2023-10-24T04:13:38.866125Z",
+      "project_urls": {
+        "Homepage": "https://github.com/sarugaku/shellingham"
+      },
+      "advisories": []
+    },
+    {
+      "name": "starlette",
+      "version": "1.3.1",
+      "metadata_url": "https://pypi.org/pypi/starlette/1.3.1/json",
+      "first_uploaded": "2026-06-12T09:23:10.017643Z",
+      "project_urls": {
+        "Changelog": "https://starlette.dev/release-notes/",
+        "Documentation": "https://starlette.dev/",
+        "Funding": "https://github.com/sponsors/Kludex",
+        "Homepage": "https://github.com/Kludex/starlette",
+        "Source": "https://github.com/Kludex/starlette"
+      },
+      "advisories": []
+    },
+    {
+      "name": "sympy",
+      "version": "1.14.0",
+      "metadata_url": "https://pypi.org/pypi/sympy/1.14.0/json",
+      "first_uploaded": "2025-04-27T18:04:59.103806Z",
+      "project_urls": {
+        "Homepage": "https://sympy.org",
+        "Source": "https://github.com/sympy/sympy"
+      },
+      "advisories": []
+    },
+    {
+      "name": "tokenizers",
+      "version": "0.23.2",
+      "metadata_url": "https://pypi.org/pypi/tokenizers/0.23.2/json",
+      "first_uploaded": "2026-09-03T08:55:14.741385Z",
+      "project_urls": {
+        "Homepage": "https://github.com/huggingface/tokenizers",
+        "Source": "https://github.com/huggingface/tokenizers"
+      },
+      "advisories": []
+    },
+    {
+      "name": "tqdm",
+      "version": "4.70.1",
+      "metadata_url": "https://pypi.org/pypi/tqdm/4.70.1/json",
+      "first_uploaded": "2026-09-11T07:25:14.599062Z",
+      "project_urls": {
+        "changelog": "https://tqdm.github.io/releases",
+        "homepage": "https://tqdm.github.io",
+        "repository": "https://github.com/tqdm/tqdm",
+        "wiki": "https://github.com/tqdm/tqdm/wiki"
+      },
+      "advisories": []
+    },
+    {
+      "name": "transformers",
+      "version": "5.16.1",
+      "metadata_url": "https://pypi.org/pypi/transformers/5.16.1/json",
+      "first_uploaded": "2026-08-26T14:48:55.083127Z",
+      "project_urls": {
+        "Homepage": "https://github.com/huggingface/transformers"
+      },
+      "advisories": []
+    },
+    {
+      "name": "triton",
+      "version": "3.7.1",
+      "metadata_url": "https://pypi.org/pypi/triton/3.7.1/json",
+      "first_uploaded": "2026-06-17T19:53:06.898975Z",
+      "project_urls": {
+        "Homepage": "https://github.com/triton-lang/triton/"
+      },
+      "advisories": []
+    },
+    {
+      "name": "typer",
+      "version": "0.27.2",
+      "metadata_url": "https://pypi.org/pypi/typer/0.27.2/json",
+      "first_uploaded": "2026-08-28T10:26:53.752947Z",
+      "project_urls": {
+        "Changelog": "https://typer.tiangolo.com/release-notes/",
+        "Documentation": "https://typer.tiangolo.com",
+        "Homepage": "https://github.com/fastapi/typer",
+        "Issues": "https://github.com/fastapi/typer/issues",
+        "Repository": "https://github.com/fastapi/typer"
+      },
+      "advisories": []
+    },
+    {
+      "name": "typing-extensions",
+      "version": "4.16.0",
+      "metadata_url": "https://pypi.org/pypi/typing-extensions/4.16.0/json",
+      "first_uploaded": "2026-07-02T08:40:04.659120Z",
+      "project_urls": {
+        "Bug Tracker": "https://github.com/python/typing_extensions/issues",
+        "Changes": "https://github.com/python/typing_extensions/blob/main/CHANGELOG.md",
+        "Documentation": "https://typing-extensions.readthedocs.io/",
+        "Home": "https://github.com/python/typing_extensions",
+        "Q & A": "https://github.com/python/typing/discussions",
+        "Repository": "https://github.com/python/typing_extensions"
+      },
+      "advisories": []
+    },
+    {
+      "name": "typing-inspection",
+      "version": "0.4.4",
+      "metadata_url": "https://pypi.org/pypi/typing-inspection/0.4.4/json",
+      "first_uploaded": "2026-08-12T12:37:24.648475Z",
+      "project_urls": {
+        "Changelog": "https://github.com/pydantic/typing-inspection/blob/main/HISTORY.md",
+        "Documentation": "https://pydantic.github.io/typing-inspection/dev/",
+        "Homepage": "https://github.com/pydantic/typing-inspection",
+        "Source": "https://github.com/pydantic/typing-inspection"
+      },
+      "advisories": []
+    },
+    {
+      "name": "uvicorn",
+      "version": "0.40.0",
+      "metadata_url": "https://pypi.org/pypi/uvicorn/0.40.0/json",
+      "first_uploaded": "2025-12-21T14:16:21.041384Z",
+      "project_urls": {
+        "Changelog": "https://uvicorn.dev/release-notes",
+        "Funding": "https://github.com/sponsors/encode",
+        "Homepage": "https://uvicorn.dev/",
+        "Source": "https://github.com/Kludex/uvicorn"
+      },
+      "advisories": []
+    },
+    {
+      "name": "torch",
+      "version": "2.13.0+cu126",
+      "metadata_url": "https://pypi.org/pypi/torch/2.13.0/json",
+      "first_uploaded": "2026-07-08T16:01:59.348299Z",
+      "project_urls": {
+        "Documentation": "https://pytorch.org/docs",
+        "Forum": "https://discuss.pytorch.org",
+        "Homepage": "https://pytorch.org",
+        "Issue Tracker": "https://github.com/pytorch/pytorch/issues",
+        "Repository": "https://github.com/pytorch/pytorch"
+      },
+      "advisories": []
+    },
+    {
+      "name": "uv",
+      "version": "0.12.9",
+      "metadata_url": "https://pypi.org/pypi/uv/0.12.9/json",
+      "first_uploaded": "2026-09-01T21:57:01.443014Z",
+      "project_urls": {
+        "Changelog": "https://github.com/astral-sh/uv/blob/main/CHANGELOG.md",
+        "Discord": "https://discord.gg/astral-sh",
+        "Documentation": "https://docs.astral.sh/uv",
+        "Homepage": "https://pypi.org/project/uv/",
+        "Releases": "https://github.com/astral-sh/uv/releases",
+        "Repository": "https://github.com/astral-sh/uv"
+      },
+      "advisories": []
+    }
+  ]
+}
