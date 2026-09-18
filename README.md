@@ -5,8 +5,7 @@ Run LLMs on Google Colab's free GPUs and serve them locally via an OpenAI-compat
 ## Prerequisites
 
 - **Chromium/Chrome** with remote debugging enabled
-- **Node.js** (for the local proxy)
-- **uv** (auto-installed by deploy script if missing)
+- **Node.js 22.15+** (built-in WebSocket for deployment and the local proxy)
 - **Google account** logged in on Chromium (Colab requires auth)
 
 ## Quick Start
@@ -56,10 +55,26 @@ next time. There is no automatic two-hour expiry. Colab Secrets persist until ch
 
 Deploy after adding the Colab secret:
 
+Save the notebook first. Create one dedicated **code cell** whose first line is exactly:
+
+```python
+# colab-inference:managed-deploy:v1
+```
+
+Then run:
+
 ```bash
 cd ~/colab-inference
-./deploy.sh
+./deploy.sh --notebook-url "https://colab.research.google.com/drive/YOUR_NOTEBOOK_ID"
 ```
+
+After that one-time opt-in, rerun the same command for deployment. It updates only this marked cell with the current local `colab_server.py`; all other cells are preserved. Do not put personal code in the managed cell. Missing or duplicate markers stop deployment. A URL open in multiple tabs is ambiguous: close duplicates or use `--tab-id ID` from the local CDP `http://127.0.0.1:9222/json/list` instead. Exactly one selector is required; query strings and fragments do not identify different notebooks.
+
+Identical reruns skip duplicate server startup in the same runtime. For changed code/model, **restart the Colab runtime**, then run the same deploy command; no new opt-in is needed. After an interrupted or timed-out deployment, inspect the notebook before retrying. If the browser still reports pending/running after a runtime restart, reload that notebook tab to clear the stale status. The tool does not dismiss security/authorization prompts or change runtimes.
+
+The command waits up to 600 seconds (override with `--timeout SECONDS`, maximum 3600), reports Python tracebacks and CDP errors, and exits nonzero on failure or unknown status. Completion means the server script finished and reported a tunnel URL, not that the remote endpoint has been independently health-checked. `--port` only changes the suggested local proxy command; it does not start the proxy.
+
+Colab's page API is private and may change. Unsupported cell APIs fail closed; use manual setup if necessary. This automation is covered by local mocks, not a live notebook test.
 
 ### 4. Start the local proxy
 
@@ -250,8 +265,11 @@ CONFIG = {
 **Option B: Via deploy script**
 
 ```bash
-./deploy.sh --model "Qwen/Qwen3-8B"
+./deploy.sh --notebook-url "https://colab.research.google.com/drive/YOUR_NOTEBOOK_ID" \
+  --model "Qwen/Qwen3-8B" --revision "<40-hex-model-commit>"
 ```
+
+Custom models require both an immutable Hugging Face commit (not a branch/tag) and a server version with `CONFIG.model_revision` support; model and tokenizer use the same revision. Without these flags, deployment preserves the server's checked-in model defaults.
 
 **Option C: 4-bit quantization** (for larger models)
 
@@ -320,3 +338,9 @@ node --test --test-timeout=5000 tests/proxy.test.mjs
 Python tests execute only configuration and API definitions with mocked model,
 tokenizer and torch objects. They never execute dependency installation, model
 loading, server startup, or tunnel startup. Both suites use local mocks only.
+
+## Deployment regression tests
+
+Run `node --test tests/deploy.test.mjs`. Tests use notebook/CDP fixtures and never contact a real notebook, download a model, or start a tunnel. No packages are installed by the deployment launcher.
+
+Test the generated Python cell with an existing interpreter: `uv run --no-project --no-python-downloads --python /path/to/python tests/deploy_wrapper_test.py`. This uses only the Python standard library and Node; it mocks Colab output and server startup.
