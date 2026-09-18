@@ -184,15 +184,16 @@ on an EOS token, and `stop` for EOS or earlier stopping. EOS on the final allowe
 token counts as `stop`. The authenticated API's existing schema enforces positive
 output limits and its configured maximum.
 
-Offline API contract tests (standard library only; no model downloads or GPU):
+Offline API contract tests (use the [isolated CPU environment](#continuous-integration-and-local-checks); no model downloads or GPU):
 
 ```bash
-uv run --offline --no-project python -m unittest discover -s tests -p test_api_contract.py -v
+work/test-env/bin/python -m unittest discover -s tests -p test_api_contract.py -v
 ```
 
-These tests exercise server and notebook handler definitions using dependency
-doubles. The separate authentication tests exercise real FastAPI routing with
-mocked inference; neither suite starts a live Colab runtime.
+These tests exercise server and notebook handler definitions using real
+FastAPI/Pydantic and model fixtures. The authentication tests use TestClient;
+the socket suite starts real Uvicorn and the loopback proxy for both entrypoints.
+None of these tests starts a live Colab runtime.
 
 ## Supported Models
 
@@ -316,7 +317,7 @@ Quantization is an optional extension, outside the locked baseline. Before enabl
 
 Copy `colab_server.py` into a fresh **Linux x86_64 / Python 3.12** Colab cell and run it. Edit both the model ID and immutable revision in `CONFIG` when changing the model. Setup installs the embedded hash-locked runtime and verifies the uv/cloudflared executable downloads. Other Python versions fail before installation.
 
-See [Reproducible runtime baseline](REPRODUCIBILITY.md) for exact versions, release-age/advisory evidence, offline tests, maintenance commands and the remaining Colab validation limits. Deployment PR #4 must accompany this change to remove the old deployment installer.
+See [Reproducible runtime baseline](REPRODUCIBILITY.md) for exact versions, release-age/advisory evidence, maintenance commands and the manual Colab acceptance procedure.
 
 ## Files
 
@@ -326,21 +327,52 @@ See [Reproducible runtime baseline](REPRODUCIBILITY.md) for exact versions, rele
 - `deploy.sh` — Auto-deploy via Chrome DevTools Protocol
 
 
-## Authentication regression tests
+## Continuous integration and local checks
 
-With FastAPI, Pydantic v2 and httpx available in your existing Python environment:
+CI runs on Linux with **CPython 3.12.10, Node 24.14.0 and uv 0.11.19**.
+GitHub Actions are pinned to immutable revisions; PR validation checks out the
+exact PR head. No Node dependencies are needed. The CPU test lock is an exact
+16-package subset of `requirements.lock`, including FastAPI, Starlette,
+Pydantic, Uvicorn and HTTPX (required by TestClient). Production/GPU pins stay
+unchanged. With those reviewed runtimes already installed:
 
 ```bash
-uv run --no-project python -m unittest discover -s tests -p 'test_auth.py' -v
-node --test --test-timeout=5000 tests/proxy.test.mjs
+python scripts/test_environment.py --audit
+uv venv --python 3.12.10 --no-python-downloads work/test-env
+uv pip sync --python work/test-env/bin/python --no-config --default-index https://pypi.org/simple --require-hashes --only-binary :all: requirements-test.lock
+uv pip check --python work/test-env/bin/python
+work/test-env/bin/python scripts/check.py
 ```
 
-Python tests execute only configuration and API definitions with mocked model,
-tokenizer and torch objects. They never execute dependency installation, model
-loading, server startup, or tunnel startup. Both suites use local mocks only.
+On Windows, replace `work/test-env/bin/python` with
+`work/test-env/Scripts/python.exe`. `NODE_BINARY` can name the pinned Node
+executable. Do not reuse another project's Python environment. The registry
+audit fails before installation on missing identity/hash evidence, yanked or
+under-72-hour artifacts, or published advisories. Frozen installation requires
+hashes and wheels; `uv pip check` verifies the installed dependency closure.
 
-## Deployment regression tests
+The gate discovers both `test_*.py` and `*_test.py` (32 Python tests, including
+all seven original deployment-wrapper regressions), rejects skips, runs all
+28 Node tests, compiles Python, checks JavaScript syntax and whitespace, and
+regenerates notebook sources with a zero-diff requirement. No formatter, linter,
+typechecker or build tool is otherwise configured in this repository.
 
-Run `node --test tests/deploy.test.mjs`. Tests use notebook/CDP fixtures and never contact a real notebook, download a model, or start a tunnel. No packages are installed by the deployment launcher.
+Evidence boundaries:
 
-Test the generated Python cell with an existing interpreter: `uv run --no-project --no-python-downloads --python /path/to/python tests/deploy_wrapper_test.py`. This uses only the Python standard library and Node; it mocks Colab output and server startup.
+- Handler and TestClient tests execute real request schemas, auth and router
+  functions. Model/tokenizer/torch behavior is a fixture.
+- `tests/runtime.test.mjs` executes the real config, model-load and API cells
+  from both server and notebook. The production startup thread runs real
+  Uvicorn through an ephemeral loopback bind adapter. Requests traverse actual
+  TCP, Uvicorn, FastAPI and `proxy.mjs`, including token injection, error status,
+  busy-slot recovery after a proxy timeout, and HTTP response serialization.
+- Proxy-only tests use bounded local HTTP fixtures to test stalled streams,
+  disconnect cancellation, body limits and redirects. The inference API itself
+  rejects `stream=true`; these are transport tests, not model streaming support.
+- Generated deployment cells run real config/model-load/router code and verify
+  that a custom model and revision reach both loader calls and the HTTP result.
+  Colab output/CDP and external model/tunnel boundaries remain fixtures.
+
+No offline result establishes GPU compatibility, real model output, the private
+Colab page API, or public tunnel availability. Follow the opt-in procedure in
+[REPRODUCIBILITY.md](REPRODUCIBILITY.md#manual-gpu-acceptance-opt-in) for those.

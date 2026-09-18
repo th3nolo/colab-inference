@@ -1,0 +1,38 @@
+name: CPU contracts
+on:
+  push:
+    branches: [master]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  contracts:
+    name: Python and Node contracts
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: '3.12.10'
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '24.14.0'
+      - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e # v6.8.0
+        with:
+          version: '0.11.19'
+          enable-cache: false
+      - name: Verify complete CPU lock provenance before installation
+        run: python scripts/test_environment.py --audit
+      - name: Install isolated hash-locked CPU environment
+        run: |
+          uv venv --python 3.12.10 --no-python-downloads work/test-env
+          uv pip sync --python work/test-env/bin/python --no-config --default-index https://pypi.org/simple --require-hashes --only-binary :all: requirements-test.lock
+          uv pip check --python work/test-env/bin/python
+      - name: Run all Python and Node tests, real loopback contracts and generated-source checks
+        run: work/test-env/bin/python scripts/check.py

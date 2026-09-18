@@ -1,8 +1,6 @@
-"""Offline contract regressions; never execute installation, loading, or startup.
+"""Handler regressions with real FastAPI/Pydantic and a model boundary fixture.
 
-Run: uv run --offline --no-project python -m unittest discover -s tests -p test_api_contract.py -v
-The AST loader executes production request/handler definitions with tiny external
-API doubles. This checks handler behavior, not FastAPI/Pydantic HTTP integration.
+The socket suite separately exercises startup, middleware and HTTP serialization.
 """
 import ast
 from contextlib import nullcontext
@@ -14,29 +12,10 @@ import uuid
 import time
 import threading
 
+from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel, Field
+
 ROOT = Path(__file__).resolve().parents[1]
-
-
-class BaseModel:
-    def __init__(self, **values):
-        for name in self.__annotations__:
-            if name in values:
-                setattr(self, name, values[name])
-            elif hasattr(type(self), name):
-                setattr(self, name, getattr(type(self), name))
-            else:
-                raise TypeError(name)
-
-
-class HTTPException(Exception):
-    def __init__(self, status_code, detail, headers=None):
-        self.status_code, self.detail = status_code, detail
-
-
-class App:
-    def get(self, path):
-        return lambda fn: fn
-    post = get
 
 
 class Scalar(int):
@@ -102,10 +81,10 @@ def load(source):
             'ChatMessage', 'ChatRequest', 'chat', 'generate_completion', 'list_models', 'health'
         }:
             keep.append(node)
-    ns = dict(BaseModel=BaseModel, HTTPException=HTTPException, app=App(),
+    ns = dict(BaseModel=BaseModel, HTTPException=HTTPException, app=FastAPI(),
               torch=SimpleNamespace(no_grad=nullcontext), uuid=uuid, _time=time,
               model=Model(), tokenizer=Tokenizer(),
-              Field=lambda default=None, **kwargs: default,
+              Field=Field,
               inference_slots=threading.BoundedSemaphore(1))
     exec(compile(ast.Module(body=keep, type_ignores=[]), '<api definitions>', 'exec'), ns)
     return ns

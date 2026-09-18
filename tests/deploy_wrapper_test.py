@@ -7,6 +7,10 @@ import sys
 import types
 import unittest
 from pathlib import Path
+from unittest.mock import patch
+
+from fastapi.testclient import TestClient
+from runtime_fixture import TOKEN, cells, model_modules
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -16,7 +20,7 @@ def generated(source, model=None, revision=None):
         [os.environ.get('NODE_BINARY', 'node'), '--input-type=module', '-e',
          "import {buildCode} from './deploy.mjs'; let s=''; for await (const c of process.stdin) s+=c; const p=JSON.parse(s); process.stdout.write(buildCode(p.source,p.model,'test-token',p.revision));"],
         input=json.dumps(dict(source=source, model=model, revision=revision)),
-        text=True, capture_output=True, cwd=ROOT, check=True,
+        text=True, encoding='utf-8', capture_output=True, cwd=ROOT, check=True, timeout=10,
     )
     return result.stdout
 
@@ -89,8 +93,7 @@ class WrapperTests(unittest.TestCase):
         original = ast.parse(source)
         config = next(n for n in original.body if isinstance(n, ast.Assign) and any(isinstance(t, ast.Name) and t.id == 'CONFIG' for t in n.targets))
         keys = [k.value for k in config.value.keys]
-        if 'model_revision' not in keys:
-            self.skipTest('Requires reproducibility prerequisite with model_revision')
+        self.assertIn('model_revision', keys)
         revision = 'b' * 40
         config.value.values[keys.index('model_id')] = ast.Constant(value='fixture/model')
         config.value.values[keys.index('model_revision')] = ast.Constant(value=revision)
@@ -115,6 +118,32 @@ class WrapperTests(unittest.TestCase):
         with self.assertRaises(SyntaxError):
             exec(generated('CONFIG = {'), self.scope)
         self.assertIn('SyntaxError', self.states[-1]['detail'])
+
+    def test_generated_override_reaches_real_model_load_and_http_contract(self):
+        for entrypoint in ('server', 'notebook'):
+            with self.subTest(entrypoint=entrypoint):
+                config, load, api = cells(entrypoint)
+                # Execute actual config/load/router code through buildCode's
+                # generated Python cell. Only GPU and tunnel/provider boundaries
+                # are fixtures; socket startup is exercised by runtime.test.mjs.
+                source = config + '\n' + load + '\n' + api[:api.index('threading.Thread(')]
+                source += '\ntunnel_url = "https://fixture.invalid"\n'
+                namespace, loads = {}, []
+                revision = 'b' * 40
+                with patch.dict(os.environ, {'COLAB_API_TOKEN': TOKEN}), patch.dict(sys.modules, model_modules(loads)):
+                    exec(generated(source, 'fixture/custom', revision), namespace)
+                    with TestClient(namespace['app']) as client:
+                        response = client.post('/v1/chat/completions', headers={'Authorization': 'Bearer ' + TOKEN},
+                                               json={'messages': [{'role': 'user', 'content': 'hello'}]})
+                    self.assertEqual(response.status_code, 200)
+                    self.assertEqual(response.json()['model'], 'fixture/custom')
+                self.assertEqual(len(loads), 2)
+                for kind, model_id, options in loads:
+                    self.assertEqual(model_id, 'fixture/custom', kind)
+                    self.assertEqual(options['revision'], revision, kind)
+                    self.assertIs(options['trust_remote_code'], False, kind)
+                self.assertIs(loads[0][2]['use_safetensors'], True)
+                self.assertEqual(self.states[-1]['status'], 'complete')
 
 
 if __name__ == '__main__':
